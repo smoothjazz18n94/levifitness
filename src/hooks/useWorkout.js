@@ -1,231 +1,251 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { TEMPLATES } from '../data/workouts';
+export const WORKOUT_MODES = [
+  { id: 'hiit',        label: 'HIIT',            color: '#39FF14', icon: '⚡', desc: 'High Intensity Intervals' },
+  { id: 'strength',    label: 'Strength',         color: '#F59E0B', icon: '🏋️', desc: 'Power & Muscle' },
+  { id: 'bodyweight',  label: 'Bodyweight',       color: '#06B6D4', icon: '🤸', desc: 'No equipment needed' },
+  { id: 'cardio',      label: 'Cardio',           color: '#3B82F6', icon: '🏃', desc: 'Endurance & Burn' },
+  { id: 'calisthenics',label: 'Calisthenics',     color: '#10B981', icon: '💪', desc: 'Functional movement' },
+  { id: 'crossfit',    label: 'CrossFit',         color: '#EF4444', icon: '🔥', desc: 'High performance WODs' },
+  { id: 'yoga',        label: 'Yoga',             color: '#8B5CF6', icon: '🧘', desc: 'Mind & body balance' },
+  { id: 'stretching',  label: 'Stretching',       color: '#EC4899', icon: '🌸', desc: 'Flexibility & recovery' },
+  { id: 'boxing',      label: 'Boxing',           color: '#F97316', icon: '🥊', desc: 'Combat conditioning' },
+  { id: 'running',     label: 'Running',          color: '#14B8A6', icon: '👟', desc: 'Pace & distance' },
+  { id: 'cycling',     label: 'Cycling',          color: '#6366F1', icon: '🚴', desc: 'Spin & endurance' },
+  { id: 'abs',         label: 'Abs',              color: '#F59E0B', icon: '🎯', desc: 'Core & stability' },
+  { id: 'beginner',    label: 'Beginner',         color: '#34D399', icon: '🌱', desc: 'Start your journey' },
+  { id: 'advanced',    label: 'Advanced',         color: '#DC2626', icon: '🚀', desc: 'Elite performance' },
+  { id: 'fatburn',     label: 'Fat Burn',         color: '#FB923C', icon: '🔆', desc: 'Maximum calorie torch' },
+  { id: 'musclegain',  label: 'Muscle Gain',      color: '#A855F7', icon: '💎', desc: 'Hypertrophy focus' },
+  { id: 'athlete',     label: 'Athlete Training', color: '#39FF14', icon: '🏆', desc: 'Pro-level protocols' },
+  { id: 'tabata',      label: 'Tabata',           color: '#E879F9', icon: '⏱️', desc: '20s on / 10s off' },
+  { id: 'custom',      label: 'Custom',           color: '#94A3B8', icon: '✨', desc: 'Your own rules' },
+];
 
-const LS_CUSTOM   = 'levi_custom_workouts';
-const LS_STATS    = 'levi_stats';
-const LS_SETTINGS = 'levi_settings';
+export const MOTIVATIONAL = [
+  "YOU GOT THIS","PUSH HARDER","NO LIMITS","BEAST MODE",
+  "STAY FOCUSED","FEEL THE BURN","LEVEL UP","UNSTOPPABLE",
+  "ONE MORE REP","DOMINATE","ALL IN","CONQUER IT","NO PAIN NO GAIN",
+  "EARN IT","GO BEYOND","OUTWORK EVERYONE",
+];
 
-function load(key, fallback) {
-  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
-  catch { return fallback; }
-}
+export const TEMPLATES = [
+  {
+    id: 'tmpl_hiit_1', name: 'Classic HIIT Blast', mode: 'hiit', calories: 320, totalTime: 1200,
+    exercises: [
+      { id: 'th1', name: 'Jumping Jacks',     duration: 40, rest: 20, sets: 3 },
+      { id: 'th2', name: 'Burpees',           duration: 40, rest: 20, sets: 3 },
+      { id: 'th3', name: 'Mountain Climbers', duration: 40, rest: 20, sets: 3 },
+      { id: 'th4', name: 'High Knees',        duration: 40, rest: 20, sets: 3 },
+      { id: 'th5', name: 'Jump Squats',       duration: 40, rest: 20, sets: 3 },
+      { id: 'th6', name: 'Box Jumps',         duration: 40, rest: 20, sets: 3 },
+    ],
+  },
+  {
+    id: 'tmpl_tabata_1', name: 'Tabata Fire', mode: 'tabata', calories: 210, totalTime: 960,
+    exercises: [
+      { id: 'tt1', name: 'Push-Ups',     duration: 20, rest: 10, sets: 3 },
+      { id: 'tt2', name: 'Squats',       duration: 20, rest: 10, sets: 3 },
+      { id: 'tt3', name: 'Plank Hold',   duration: 20, rest: 10, sets: 3 },
+      { id: 'tt4', name: 'Lunges',       duration: 20, rest: 10, sets: 3 },
+      { id: 'tt5', name: 'Tricep Dips',  duration: 20, rest: 10, sets: 3 },
+      { id: 'tt6', name: 'Crunches',     duration: 20, rest: 10, sets: 3 },
+    ],
+  },
+  {
+    id: 'tmpl_strength_1', name: 'Big 5 Strength', mode: 'strength', calories: 350, totalTime: 2700,
+    exercises: [
+      { id: 'ts1', name: 'Deadlifts',        duration: 60, rest: 120, sets: 3 },
+      { id: 'ts2', name: 'Bench Press',      duration: 60, rest: 120, sets: 3 },
+      { id: 'ts3', name: 'Back Squats',      duration: 60, rest: 120, sets: 3 },
+      { id: 'ts4', name: 'Overhead Press',   duration: 60, rest: 120, sets: 3 },
+      { id: 'ts5', name: 'Barbell Rows',     duration: 60, rest: 120, sets: 3 },
+    ],
+  },
+  {
+    id: 'tmpl_bodyweight_1', name: 'Bodyweight Burn', mode: 'bodyweight', calories: 240, totalTime: 1080,
+    exercises: [
+      { id: 'tb1', name: 'Push-Ups',         duration: 45, rest: 15, sets: 3 },
+      { id: 'tb2', name: 'Air Squats',       duration: 45, rest: 15, sets: 3 },
+      { id: 'tb3', name: 'Dips (Chair)',     duration: 45, rest: 15, sets: 3 },
+      { id: 'tb4', name: 'Reverse Lunges',  duration: 45, rest: 15, sets: 3 },
+      { id: 'tb5', name: 'Pike Push-Ups',   duration: 45, rest: 15, sets: 3 },
+      { id: 'tb6', name: 'Glute Bridges',   duration: 45, rest: 15, sets: 3 },
+    ],
+  },
+  {
+    id: 'tmpl_calisthenics_1', name: 'Calisthenics Flow', mode: 'calisthenics', calories: 280, totalTime: 1440,
+    exercises: [
+      { id: 'tc1', name: 'Pull-Ups',          duration: 45, rest: 60, sets: 3 },
+      { id: 'tc2', name: 'Dips',              duration: 45, rest: 60, sets: 3 },
+      { id: 'tc3', name: 'Muscle-Ups Neg.',   duration: 30, rest: 90, sets: 3 },
+      { id: 'tc4', name: 'L-Sit Hold',        duration: 20, rest: 60, sets: 3 },
+      { id: 'tc5', name: 'Handstand Hold',    duration: 20, rest: 60, sets: 3 },
+      { id: 'tc6', name: 'Dragon Flags',      duration: 30, rest: 60, sets: 3 },
+    ],
+  },
+  {
+    id: 'tmpl_crossfit_1', name: 'CrossFit WOD', mode: 'crossfit', calories: 400, totalTime: 1800,
+    exercises: [
+      { id: 'tcf1', name: 'Thrusters',        duration: 60, rest: 30, sets: 3 },
+      { id: 'tcf2', name: 'Box Jumps',        duration: 60, rest: 30, sets: 3 },
+      { id: 'tcf3', name: 'Wall Balls',       duration: 60, rest: 30, sets: 3 },
+      { id: 'tcf4', name: 'Kettlebell Swings',duration: 60, rest: 30, sets: 3 },
+      { id: 'tcf5', name: 'Double Unders',    duration: 60, rest: 30, sets: 3 },
+      { id: 'tcf6', name: 'Toes to Bar',      duration: 60, rest: 30, sets: 3 },
+    ],
+  },
+  {
+    id: 'tmpl_yoga_1', name: 'Morning Yoga Flow', mode: 'yoga', calories: 120, totalTime: 1800,
+    exercises: [
+      { id: 'ty1', name: "Child's Pose",      duration: 60, rest: 10, sets: 3 },
+      { id: 'ty2', name: 'Downward Dog',      duration: 60, rest: 10, sets: 3 },
+      { id: 'ty3', name: 'Warrior I',         duration: 45, rest: 10, sets: 3 },
+      { id: 'ty4', name: 'Warrior II',        duration: 45, rest: 10, sets: 3 },
+      { id: 'ty5', name: 'Triangle Pose',     duration: 45, rest: 10, sets: 3 },
+      { id: 'ty6', name: 'Pigeon Pose',       duration: 60, rest: 10, sets: 3 },
+      { id: 'ty7', name: "Cat-Cow Stretch",   duration: 60, rest: 10, sets: 3 },
+      { id: 'ty8', name: 'Savasana',          duration: 120, rest: 0, sets: 3 },
+    ],
+  },
+  {
+    id: 'tmpl_stretching_1', name: 'Full Body Stretch', mode: 'stretching', calories: 80, totalTime: 1200,
+    exercises: [
+      { id: 'tst1', name: 'Neck Rolls',           duration: 30, rest: 10, sets: 3 },
+      { id: 'tst2', name: 'Shoulder Stretch',     duration: 30, rest: 10, sets: 3 },
+      { id: 'tst3', name: 'Chest Opener',         duration: 30, rest: 10, sets: 3 },
+      { id: 'tst4', name: 'Hip Flexor Stretch',   duration: 45, rest: 10, sets: 3 },
+      { id: 'tst5', name: 'Hamstring Stretch',    duration: 45, rest: 10, sets: 3 },
+      { id: 'tst6', name: 'Quad Stretch',         duration: 45, rest: 10, sets: 3 },
+      { id: 'tst7', name: 'Calf Stretch',         duration: 30, rest: 10, sets: 3 },
+      { id: 'tst8', name: 'Spinal Twist',         duration: 45, rest: 10, sets: 3 },
+    ],
+  },
+  {
+    id: 'tmpl_boxing_1', name: 'Boxing Conditioning', mode: 'boxing', calories: 380, totalTime: 1800,
+    exercises: [
+      { id: 'tbx1', name: 'Shadow Boxing',     duration: 120, rest: 60, sets: 3 },
+      { id: 'tbx2', name: 'Jab-Cross Combos',  duration: 60,  rest: 30 },
+      { id: 'tbx3', name: 'Hook Combos',       duration: 60,  rest: 30 },
+      { id: 'tbx4', name: 'Uppercuts',         duration: 60,  rest: 30 },
+      { id: 'tbx5', name: 'Slip & Counter',    duration: 60,  rest: 30 },
+      { id: 'tbx6', name: 'Speed Bag Drill',   duration: 60,  rest: 60 },
+      { id: 'tbx7', name: 'Heavy Bag Power',   duration: 120, rest: 60, sets: 3 },
+    ],
+  },
+  {
+    id: 'tmpl_running_1', name: 'Interval Running', mode: 'running', calories: 450, totalTime: 2400,
+    exercises: [
+      { id: 'tr1', name: 'Easy Warm-Up Jog',  duration: 300, rest: 0, sets: 3 },
+      { id: 'tr2', name: '80% Sprint',         duration: 60,  rest: 90 },
+      { id: 'tr3', name: '80% Sprint',         duration: 60,  rest: 90 },
+      { id: 'tr4', name: '80% Sprint',         duration: 60,  rest: 90 },
+      { id: 'tr5', name: '90% Sprint',         duration: 45,  rest: 90 },
+      { id: 'tr6', name: '90% Sprint',         duration: 45,  rest: 90 },
+      { id: 'tr7', name: 'MAX Sprint',         duration: 30,  rest: 120 },
+      { id: 'tr8', name: 'Cool-Down Walk',     duration: 180, rest: 0, sets: 3 },
+    ],
+  },
+  {
+    id: 'tmpl_cycling_1', name: 'Cycling Intervals', mode: 'cycling', calories: 400, totalTime: 2100,
+    exercises: [
+      { id: 'tcy1', name: 'Warm-Up Spin',       duration: 300, rest: 0  },
+      { id: 'tcy2', name: 'High Cadence Push',  duration: 60,  rest: 60 },
+      { id: 'tcy3', name: 'Heavy Resistance',   duration: 60,  rest: 60 },
+      { id: 'tcy4', name: 'Sprint Out of Saddle',duration: 30, rest: 90, sets: 3 },
+      { id: 'tcy5', name: 'Sprint Out of Saddle',duration: 30, rest: 90, sets: 3 },
+      { id: 'tcy6', name: 'Endurance Pace',     duration: 300, rest: 0  },
+      { id: 'tcy7', name: 'Cool-Down',          duration: 180, rest: 0  },
+    ],
+  },
+  {
+    id: 'tmpl_abs_1', name: 'Core Destroyer', mode: 'abs', calories: 180, totalTime: 900,
+    exercises: [
+      { id: 'ta1', name: 'Plank Hold',          duration: 45, rest: 15, sets: 3 },
+      { id: 'ta2', name: 'Crunches',            duration: 40, rest: 20, sets: 3 },
+      { id: 'ta3', name: 'Leg Raises',          duration: 40, rest: 20, sets: 3 },
+      { id: 'ta4', name: 'Russian Twists',      duration: 40, rest: 20, sets: 3 },
+      { id: 'ta5', name: 'Bicycle Crunches',    duration: 40, rest: 20, sets: 3 },
+      { id: 'ta6', name: 'Side Plank (L)',      duration: 30, rest: 10, sets: 3 },
+      { id: 'ta7', name: 'Side Plank (R)',      duration: 30, rest: 10, sets: 3 },
+      { id: 'ta8', name: 'V-Ups',               duration: 40, rest: 20, sets: 3 },
+    ],
+  },
+  {
+    id: 'tmpl_beginner_1', name: 'Beginner Start', mode: 'beginner', calories: 150, totalTime: 900,
+    exercises: [
+      { id: 'tbe1', name: 'March in Place',     duration: 60, rest: 30, sets: 3 },
+      { id: 'tbe2', name: 'Wall Push-Ups',      duration: 30, rest: 30, sets: 3 },
+      { id: 'tbe3', name: 'Chair Squats',       duration: 30, rest: 30, sets: 3 },
+      { id: 'tbe4', name: 'Step Touches',       duration: 45, rest: 30, sets: 3 },
+      { id: 'tbe5', name: 'Standing Knee Tucks',duration: 30, rest: 30, sets: 3 },
+      { id: 'tbe6', name: 'Slow Jumping Jacks', duration: 45, rest: 30, sets: 3 },
+    ],
+  },
+  {
+    id: 'tmpl_advanced_1', name: 'Advanced Destroyer', mode: 'advanced', calories: 480, totalTime: 2400,
+    exercises: [
+      { id: 'tad1', name: 'Plyometric Burpees',   duration: 45, rest: 15, sets: 3 },
+      { id: 'tad2', name: 'Clap Push-Ups',        duration: 40, rest: 20, sets: 3 },
+      { id: 'tad3', name: 'Pistol Squats',        duration: 40, rest: 20, sets: 3 },
+      { id: 'tad4', name: 'Muscle-Up Attempts',   duration: 30, rest: 30, sets: 3 },
+      { id: 'tad5', name: 'Tuck Planche Hold',    duration: 20, rest: 40, sets: 3 },
+      { id: 'tad6', name: 'Box Jump Burpees',     duration: 45, rest: 15, sets: 3 },
+      { id: 'tad7', name: 'Sprint 100%',          duration: 30, rest: 60, sets: 3 },
+      { id: 'tad8', name: 'Weighted Pull-Ups',    duration: 30, rest: 60, sets: 3 },
+    ],
+  },
+  {
+    id: 'tmpl_fatburn_1', name: 'Fat Burn Furnace', mode: 'fatburn', calories: 520, totalTime: 2100,
+    exercises: [
+      { id: 'tf1', name: 'Jump Rope',           duration: 60, rest: 20, sets: 3 },
+      { id: 'tf2', name: 'Burpee Jump',         duration: 45, rest: 15, sets: 3 },
+      { id: 'tf3', name: 'Squat to Jump',       duration: 45, rest: 15, sets: 3 },
+      { id: 'tf4', name: 'Speed Skaters',       duration: 45, rest: 15, sets: 3 },
+      { id: 'tf5', name: 'High Knees Sprint',   duration: 45, rest: 15, sets: 3 },
+      { id: 'tf6', name: 'Jumping Lunges',      duration: 45, rest: 15, sets: 3 },
+      { id: 'tf7', name: 'Mountain Climbers',   duration: 45, rest: 15, sets: 3 },
+      { id: 'tf8', name: 'Jumping Jacks Fast',  duration: 60, rest: 20, sets: 3 },
+    ],
+  },
+  {
+    id: 'tmpl_muscle_1', name: 'Hypertrophy Protocol', mode: 'musclegain', calories: 360, totalTime: 3600,
+    exercises: [
+      { id: 'tm1', name: 'Barbell Squats',      duration: 90, rest: 120, sets: 3 },
+      { id: 'tm2', name: 'Romanian Deadlift',   duration: 90, rest: 120, sets: 3 },
+      { id: 'tm3', name: 'Incline DB Press',    duration: 90, rest: 120, sets: 3 },
+      { id: 'tm4', name: 'Cable Rows',          duration: 90, rest: 120, sets: 3 },
+      { id: 'tm5', name: 'DB Lateral Raises',   duration: 60, rest: 90  },
+      { id: 'tm6', name: 'Barbell Curls',       duration: 60, rest: 90  },
+      { id: 'tm7', name: 'Tricep Pushdowns',    duration: 60, rest: 90  },
+    ],
+  },
+  {
+    id: 'tmpl_athlete_1', name: 'Athlete Protocol', mode: 'athlete', calories: 550, totalTime: 3000,
+    exercises: [
+      { id: 'tat1', name: 'Power Cleans',       duration: 60, rest: 90, sets: 3 },
+      { id: 'tat2', name: 'Box Jump Max Height',duration: 45, rest: 90, sets: 3 },
+      { id: 'tat3', name: 'Broad Jumps',        duration: 45, rest: 60, sets: 3 },
+      { id: 'tat4', name: 'Agility Ladder',     duration: 60, rest: 60, sets: 3 },
+      { id: 'tat5', name: 'Sled Push Sprint',   duration: 30, rest: 90, sets: 3 },
+      { id: 'tat6', name: 'Med Ball Slams',     duration: 45, rest: 45, sets: 3 },
+      { id: 'tat7', name: 'Banded Speed Work',  duration: 60, rest: 60, sets: 3 },
+      { id: 'tat8', name: 'Plyometric Circuit', duration: 60, rest: 60, sets: 3 },
+    ],
+  },
+];
 
-function uid() { return `${Date.now()}_${Math.random().toString(36).slice(2,7)}`; }
+export const WEEKLY_DATA = [
+  { day: 'M', minutes: 45, calories: 320 },
+  { day: 'T', minutes: 0,  calories: 0   },
+  { day: 'W', minutes: 60, calories: 440 },
+  { day: 'T', minutes: 30, calories: 210 },
+  { day: 'F', minutes: 50, calories: 380 },
+  { day: 'S', minutes: 75, calories: 520 },
+  { day: 'S', minutes: 0,  calories: 0   },
+];
 
-export default function useWorkout() {
-  // Custom (user-saved) workouts — templates are read-only
-  const [customWorkouts, setCustomWorkouts] = useState(() => load(LS_CUSTOM, []));
-  const [stats, setStats]       = useState(() => load(LS_STATS, { streak:7, totalCalories:12840, totalMinutes:1840, totalSessions:42 }));
-  const [settings, setSettings] = useState(() => load(LS_SETTINGS, { sound: true, vibrate: true }));
-
-  // All workouts = templates + custom
-  const allWorkouts = [...TEMPLATES, ...customWorkouts];
-
-  // Timer state
-  const [activeWorkout,  setActiveWorkout]  = useState(null);
-  const [exerciseIndex,  setExerciseIndex]  = useState(0);
-  const [phase,          setPhase]          = useState('work');
-  const [timeLeft,       setTimeLeft]       = useState(0);
-  const [isRunning,      setIsRunning]      = useState(false);
-  const [isCompleted,    setIsCompleted]    = useState(false);
-
-  // Edit-while-active: if activeWorkout is a custom/template copy, can be edited in-session
-  const [editingWorkout, setEditingWorkout] = useState(null); // workout being built/edited
-
-  const intervalRef = useRef(null);
-  const audioRef    = useRef(null);
-
-  // Persist
-  useEffect(() => { localStorage.setItem(LS_CUSTOM,   JSON.stringify(customWorkouts)); }, [customWorkouts]);
-  useEffect(() => { localStorage.setItem(LS_STATS,    JSON.stringify(stats));          }, [stats]);
-  useEffect(() => { localStorage.setItem(LS_SETTINGS, JSON.stringify(settings));       }, [settings]);
-
-  // ─── Audio ────────────────────────────────────────────────────────────────
-  const getCtx = () => {
-    if (!audioRef.current) audioRef.current = new (window.AudioContext || window.webkitAudioContext)();
-    return audioRef.current;
-  };
-  const beep = useCallback((freq=880, dur=0.12, type='sine') => {
-    if (!settings.sound) return;
-    try {
-      const ctx = getCtx();
-      const osc = ctx.createOscillator(); const g = ctx.createGain();
-      osc.connect(g); g.connect(ctx.destination);
-      osc.frequency.value = freq; osc.type = type;
-      g.gain.setValueAtTime(0.35, ctx.currentTime);
-      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
-      osc.start(ctx.currentTime); osc.stop(ctx.currentTime + dur);
-    } catch {}
-  }, [settings.sound]);
-
-  const playSuccess = useCallback(() => {
-    [523,659,784,1047].forEach((f,i) => setTimeout(()=>beep(f,0.18,'triangle'), i*130));
-  }, [beep]);
-
-  const vibrate = useCallback((pattern=[40]) => {
-    if (settings.vibrate && navigator.vibrate) navigator.vibrate(pattern);
-  }, [settings.vibrate]);
-
-  // ─── Timer tick ───────────────────────────────────────────────────────────
-  useEffect(() => {
-    if (!isRunning || !activeWorkout) return;
-    intervalRef.current = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
-          const exs = activeWorkout.exercises;
-          const goNext = (nextIdx) => {
-            if (nextIdx < exs.length) {
-              setExerciseIndex(nextIdx); setPhase('work');
-              beep(880, 0.12); vibrate([30]);
-              return exs[nextIdx].duration;
-            } else {
-              clearInterval(intervalRef.current);
-              setIsRunning(false); setIsCompleted(true);
-              playSuccess(); vibrate([80,40,80,40,120]);
-              return 0;
-            }
-          };
-          if (phase === 'work') {
-            const ex = exs[exerciseIndex];
-            if (ex.rest > 0) { beep(440, 0.2); vibrate([50]); setPhase('rest'); return ex.rest; }
-            else return goNext(exerciseIndex + 1);
-          } else {
-            return goNext(exerciseIndex + 1);
-          }
-        }
-        if (prev <= 4) { beep(440, 0.07); }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(intervalRef.current);
-  }, [isRunning, activeWorkout, exerciseIndex, phase, beep, vibrate, playSuccess]);
-
-  // ─── Controls ─────────────────────────────────────────────────────────────
-  const startWorkout = useCallback((workout) => {
-    // Deep copy so in-session edits don't mutate the library
-    const copy = { ...workout, exercises: workout.exercises.map(e=>({...e})) };
-    setActiveWorkout(copy);
-    setExerciseIndex(0); setPhase('work');
-    setTimeLeft(copy.exercises[0].duration);
-    setIsRunning(false); setIsCompleted(false);
-  }, []);
-
-  const toggleTimer = useCallback(() => {
-    setIsRunning(r => { beep(r ? 330 : 660, 0.12); return !r; });
-  }, [beep]);
-
-  const resetTimer = useCallback(() => {
-    clearInterval(intervalRef.current); setIsRunning(false);
-    if (activeWorkout) {
-      setExerciseIndex(0); setPhase('work');
-      setTimeLeft(activeWorkout.exercises[0].duration);
-    }
-    setIsCompleted(false);
-  }, [activeWorkout]);
-
-  const skipExercise = useCallback(() => {
-    if (!activeWorkout) return;
-    const next = exerciseIndex + 1;
-    if (next < activeWorkout.exercises.length) {
-      setExerciseIndex(next); setPhase('work');
-      setTimeLeft(activeWorkout.exercises[next].duration); beep(660,0.1);
-    } else { setIsRunning(false); setIsCompleted(true); playSuccess(); }
-  }, [activeWorkout, exerciseIndex, beep, playSuccess]);
-
-  const prevExercise = useCallback(() => {
-    if (exerciseIndex > 0) {
-      const p = exerciseIndex - 1;
-      setExerciseIndex(p); setPhase('work');
-      setTimeLeft(activeWorkout.exercises[p].duration); beep(440,0.1);
-    }
-  }, [exerciseIndex, activeWorkout, beep]);
-
-  const exitWorkout = useCallback(() => {
-    clearInterval(intervalRef.current);
-    setIsRunning(false); setActiveWorkout(null); setIsCompleted(false);
-  }, []);
-
-  // Live edit while in active session
-  const updateActiveExercise = useCallback((idx, field, val) => {
-    setActiveWorkout(prev => {
-      if (!prev) return prev;
-      const exs = prev.exercises.map((e,i) => i===idx ? {...e,[field]:val} : e);
-      // If editing current exercise's duration while in work phase, update timer too
-      if (idx === exerciseIndex && field === 'duration' && phase === 'work') {
-        setTimeLeft(val);
-      }
-      if (idx === exerciseIndex && field === 'rest' && phase === 'rest') {
-        setTimeLeft(val);
-      }
-      return { ...prev, exercises: exs };
-    });
-  }, [exerciseIndex, phase]);
-
-  // ─── Workout CRUD ─────────────────────────────────────────────────────────
-  const saveWorkout = useCallback((workout) => {
-    const w = { ...workout, id: workout.id || `cust_${uid()}` };
-    setCustomWorkouts(prev => {
-      const exists = prev.find(x => x.id === w.id);
-      return exists ? prev.map(x => x.id===w.id ? w : x) : [w, ...prev];
-    });
-    return w;
-  }, []);
-
-  const deleteWorkout = useCallback((id) => {
-    setCustomWorkouts(prev => prev.filter(w => w.id !== id));
-  }, []);
-
-  // Share routine as URL-encoded JSON
-  const shareWorkout = useCallback(async (workout) => {
-    const data = { n: workout.name, m: workout.mode, e: workout.exercises.map(e=>({ n:e.name, d:e.duration, r:e.rest })) };
-    const encoded = btoa(JSON.stringify(data));
-    const url = `${window.location.origin}${window.location.pathname}?routine=${encoded}`;
-    if (navigator.share) {
-      try { await navigator.share({ title: `LEVI: ${workout.name}`, text: `Check out my workout: ${workout.name}`, url }); return { ok: true }; }
-      catch {}
-    }
-    if (navigator.clipboard) {
-      await navigator.clipboard.writeText(url);
-      return { ok: true, copied: true };
-    }
-    return { ok: false, url };
-  }, []);
-
-  // On load: parse shared routine from URL
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const routineParam = params.get('routine');
-    if (routineParam) {
-      try {
-        const data = JSON.parse(atob(routineParam));
-        const shared = {
-          id: `shared_${uid()}`, name: data.n, mode: data.m,
-          exercises: data.e.map((e,i) => ({ id:`se${i}`, name:e.n, duration:e.d, rest:e.r })),
-          calories: 0, totalTime: data.e.reduce((a,e)=>a+e.d+e.r, 0),
-        };
-        setCustomWorkouts(prev => prev.find(w=>w.name===shared.name) ? prev : [shared, ...prev]);
-        window.history.replaceState({}, '', window.location.pathname);
-      } catch {}
-    }
-  }, []);
-
-  // Computed
-  const currentExercise  = activeWorkout?.exercises[exerciseIndex] || null;
-  const nextExercise     = activeWorkout?.exercises[exerciseIndex+1] || null;
-  const totalPhaseTime   = phase==='work' ? currentExercise?.duration : currentExercise?.rest;
-  const progress         = totalPhaseTime > 0 ? (totalPhaseTime - timeLeft) / totalPhaseTime : 0;
-  const overallProgress  = activeWorkout ? (exerciseIndex + (phase==='rest' ? 0.5 : 0)) / activeWorkout.exercises.length : 0;
-
-  return {
-    allWorkouts, customWorkouts, templates: TEMPLATES, stats, settings,
-    activeWorkout, exerciseIndex, phase, timeLeft,
-    isRunning, isCompleted,
-    currentExercise, nextExercise, progress, overallProgress,
-    startWorkout, toggleTimer, resetTimer, skipExercise, prevExercise, exitWorkout,
-    updateActiveExercise,
-    saveWorkout, deleteWorkout, shareWorkout,
-    setSoundEnabled: (v) => setSettings(s=>({...s, sound:v})),
-    setVibrateEnabled: (v) => setSettings(s=>({...s, vibrate:v})),
-    beep,
-  };
-}
+export const RECENT_WORKOUTS = [
+  { id: 'r1', name: 'Fat Burn Furnace',     date: 'Today',      duration: 35, calories: 520, mode: 'fatburn'   },
+  { id: 'r2', name: 'Athlete Protocol',     date: 'Yesterday',  duration: 50, calories: 550, mode: 'athlete'   },
+  { id: 'r3', name: 'Core Destroyer',       date: '2 days ago', duration: 15, calories: 180, mode: 'abs'       },
+  { id: 'r4', name: 'Tabata Fire',          date: '4 days ago', duration: 16, calories: 210, mode: 'tabata'    },
+];

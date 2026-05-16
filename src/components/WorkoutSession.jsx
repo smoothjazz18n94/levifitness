@@ -12,7 +12,7 @@ import { enrichExercise } from '../data/workoutHelpers';
 export default function WorkoutSession({
   activeWorkout, currentExercise: rawCurrent, nextExercise: rawNext,
   timeLeft, progress, overallProgress, phase,
-  isRunning, isCompleted, exerciseIndex,
+  isRunning, isCompleted, exerciseIndex, currentSet,
   onToggle, onReset, onSkip, onPrev, onExit,
   soundEnabled, onSoundToggle, onEditExercise,
 }) {
@@ -151,6 +151,31 @@ export default function WorkoutSession({
                   <Info size={11} /> Info
                 </button>
               </div>
+              {/* Sets indicator */}
+              {currentExercise?.sets > 1 && (
+                <div className="flex items-center gap-1.5 mt-1">
+                  {Array.from({ length: currentExercise.sets }).map((_, i) => (
+                    <motion.div key={i}
+                      className="rounded-full"
+                      style={{
+                        width: i === currentSet - 1 ? 22 : 8,
+                        height: 8,
+                        background: i < currentSet - 1
+                          ? color
+                          : i === currentSet - 1
+                          ? color
+                          : 'rgba(255,255,255,0.12)',
+                        boxShadow: i === currentSet - 1 ? `0 0 8px ${color}` : 'none',
+                      }}
+                      animate={{ width: i === currentSet - 1 ? 22 : 8 }}
+                      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                    />
+                  ))}
+                  <span className="text-xs font-mono ml-1" style={{ color }}>
+                    Set {currentSet}/{currentExercise.sets}
+                  </span>
+                </div>
+              )}
             </motion.div>
           </AnimatePresence>
 

@@ -59,6 +59,26 @@ function ExerciseRow({ ex, idx, color, onUpdate, onRemove, expanded, onToggle })
                     onChange={e => onUpdate('rest', +e.target.value)} />
                   <div className="flex justify-between text-xs text-gray-700 mt-1"><span>0s</span><span>180s</span></div>
                 </div>
+                <div>
+                  <div className="flex justify-between mb-2">
+                    <span className="text-xs text-gray-500 uppercase tracking-wider">Sets</span>
+                    <span className="text-xs font-mono font-bold" style={{color:'#F59E0B'}}>{ex.sets || 1} {(ex.sets||1) === 1 ? 'set' : 'sets'}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {[1,2,3,4,5,6].map(n => (
+                      <button key={n}
+                        className="flex-1 py-2 rounded-xl text-xs font-bold transition-all"
+                        style={{
+                          background: (ex.sets||1) === n ? '#F59E0B20' : 'rgba(255,255,255,0.04)',
+                          color: (ex.sets||1) === n ? '#F59E0B' : '#555',
+                          border: `1px solid ${(ex.sets||1) === n ? '#F59E0B50' : 'transparent'}`,
+                        }}
+                        onClick={() => onUpdate('sets', n)}>
+                        {n}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             </motion.div>
           )}
@@ -73,9 +93,9 @@ export default function WorkoutBuilder({ initial, onClose, onSave, onShare, isTe
   const [name,      setName]      = useState(base.name || '');
   const [mode,      setMode]      = useState(base.mode || 'custom');
   const [exercises, setExercises] = useState(
-    base.exercises?.map(e=>({...e, id: e.id||uid()})) || [
-      { id: uid(), name:'Push-Ups',  duration:40, rest:20 },
-      { id: uid(), name:'Squats',    duration:40, rest:20 },
+    base.exercises?.map(e=>({...e, id: e.id||uid(), sets: e.sets||3})) || [
+      { id: uid(), name:'Push-Ups',  duration:40, rest:20, sets:3 },
+      { id: uid(), name:'Squats',    duration:40, rest:20, sets:3 },
     ]
   );
   const [expandedId, setExpandedId] = useState(null);
@@ -96,7 +116,7 @@ export default function WorkoutBuilder({ initial, onClose, onSave, onShare, isTe
     if (!name.trim()) return;
     const valid = exercises.filter(e=>e.name.trim());
     if (!valid.length) return;
-    const totalTime = valid.reduce((a,e)=>a+e.duration+e.rest,0);
+    const totalTime = valid.reduce((a,e)=>a+(e.duration+e.rest)*(e.sets||1),0);
     const w = { ...base, name:name.trim(), mode, exercises:valid, totalTime, calories:Math.round(totalTime*0.15) };
     onSave(w);
     setSaved(true);
@@ -106,11 +126,11 @@ export default function WorkoutBuilder({ initial, onClose, onSave, onShare, isTe
   const handleShare = async () => {
     const valid = exercises.filter(e=>e.name.trim());
     if (!valid.length || !name.trim()) return;
-    const totalTime = valid.reduce((a,e)=>a+e.duration+e.rest,0);
+    const totalTime = valid.reduce((a,e)=>a+(e.duration+e.rest)*(e.sets||1),0);
     await onShare({ ...base, name:name.trim(), mode, exercises:valid, totalTime, calories:Math.round(totalTime*0.15) });
   };
 
-  const totalTime = exercises.reduce((a,e)=>a+e.duration+e.rest,0);
+  const totalTime = exercises.reduce((a,e)=>a+(e.duration+e.rest)*(e.sets||1),0);
   const valid = name.trim() && exercises.some(e=>e.name.trim());
 
   return (
